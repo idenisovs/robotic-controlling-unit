@@ -1,0 +1,2 @@
+@ECHO OFF
+"C:\AVR\AVR Tools\AvrAssembler2\avrasm2.exe" -S "C:\Users\User\Desktop\Diplom\AVR\Diplom\labels.tmp" -fI -W+ie -C V2E -o "C:\Users\User\Desktop\Diplom\AVR\Diplom\Diplom.hex" -d "C:\Users\User\Desktop\Diplom\AVR\Diplom\Diplom.obj" -e "C:\Users\User\Desktop\Diplom\AVR\Diplom\Diplom.eep" -m "C:\Users\User\Desktop\Diplom\AVR\Diplom\Diplom.map" "C:\Users\User\Desktop\Diplom\AVR\Diplom\Diplom.asm"
