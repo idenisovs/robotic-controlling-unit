@@ -13,17 +13,16 @@
 #include "th_functions.h"
 #include "fields.h"
 
-// Глобальные переменные:
+// Global variables
 int sd1;
 int client;
 
-// Прототипы функций:
+// Function prototypes
 void    op_protocol     (int size, unsigned char * recv, unsigned char * send);
 void    op_term         ();
 
-// Тред:        Оператор
-// Функция:     Связь с станцией оператора, приём и обработка поступающих
-//              комманд, пересылка собранных данных.
+// This thread provides the communication between robotic controlling unit and operator station.
+// As also, it parses and process the received data.
 void * operator (void * arg)
 {
     pthread_setcancelstate      (PTHREAD_CANCEL_DISABLE, NULL);
@@ -41,22 +40,22 @@ void * operator (void * arg)
     addr.sin_port        = htons (4002);
     addr.sin_addr.s_addr = INADDR_ANY;
     
-    // Инициализация сокета TCP/IP.
+    // Init the TCP/IP socket
     sd1 = socket (AF_INET, SOCK_STREAM, 0);
     printf ("Operator: Socket initialized!\n");    
     
-    // Занимаем порт #4002.
+    // Takes the 4002 port
     result = bind (sd1, (struct sockaddr *)&addr, size);
     if (result != 0)
         perror ("Bind AF_INET!"); 
-    // Начинаем прослушивать заданный сокет.
+    // Listening to the socket.
     result = listen (sd1, 10);
     if (result != 0)
         perror ("Listen!"); 
-    // Разрешаем завершение треда извне. 
+    // Allow to listen this thread from outside
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     
-    // Ожидание подключений.
+    // Awaiting for connections
     while ( 1 )
     {
         int clientsd = 0;
@@ -102,9 +101,8 @@ void * operator (void * arg)
     pthread_cleanup_pop (1);   
     pthread_exit(EXIT_SUCCESS);
 }
-// Тред:        Оператор.
-// Функция:     Обработка входящих комманд, формирование и загрузка
-//              ответной информации в буффер исходящего сообщения.
+
+// Incoming command processing and response loading to the responding message buffer.
 void op_protocol (int size, unsigned char * recv, unsigned char * send)
 {
     int data = 0;
@@ -129,30 +127,30 @@ void op_protocol (int size, unsigned char * recv, unsigned char * send)
             send[MSG_LOW]  = 170;
             break;
         case MSG_POS_X:
-            msg_t = "MSG_POS_X";                // Данные датчиков давления и 
-            send[MSG_TYPE] = MSG_OK_TP;         // температуры. 
+            msg_t = "MSG_POS_X";                // Measurement values 
+            send[MSG_TYPE] = MSG_OK_TP;         // of press and temp sensors
             send[MSG_NUM]  = recv[MSG_NUM]+1;
-            send[MSG_HIGH] = Temper;            // Температура
-            send[MSG_LOW]  = Press;             // Давление            
+            send[MSG_HIGH] = Temper;            // Temperature
+            send[MSG_LOW]  = Press;             // Pressure         
             X = data;
             
             break;
         case MSG_POS_Y:
-            msg_t = "MSG_POS_Y";                // Передача силы тока левого
-            send[MSG_TYPE] = MSG_OK_LR;         // и правого двигателей.
+            msg_t = "MSG_POS_Y";                // Current values of left
+            send[MSG_TYPE] = MSG_OK_LR;         // and right drives
             send[MSG_NUM]  = recv[MSG_NUM]+1;
             send[MSG_HIGH] = LCurr;
             send[MSG_LOW]  = RCurr;
             Y = data;
             break;
-        case MSG_JOY_BTN:                       // Передача напряжения
-            msg_t = "MSG_JOY_BTN";              // на левом и правом
-            send[MSG_TYPE] = MSG_OK_VV;         // двигателях.
+        case MSG_JOY_BTN:                       // Voltage values 
+            msg_t = "MSG_JOY_BTN";              // of left and right
+            send[MSG_TYPE] = MSG_OK_VV;         // drives
             send[MSG_HIGH] = LVolt;
             send[MSG_LOW]  = RVolt;
             break;
-        case MSG_POS_Z:                         // Передача статусного
-            msg_t = "MSG_POS_Z";                // сообщения.
+        case MSG_POS_Z:                         // Status message
+            msg_t = "MSG_POS_Z";
             send[MSG_TYPE] = MSG_OK_S;
             send[MSG_NUM]  = recv[MSG_NUM]+1;
             send[MSG_HIGH] = high(Status);
@@ -188,8 +186,7 @@ void op_protocol (int size, unsigned char * recv, unsigned char * send)
     
 }
 
-// Тред:        Оператор.
-// Функция:     Завершение треда "оператор".
+// Stopping the Operator thread
 void op_term()
 {
     if (client > 0)

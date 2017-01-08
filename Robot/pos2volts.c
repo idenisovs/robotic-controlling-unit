@@ -41,18 +41,17 @@ void pos2volts(int x, int y, int z, float * v_left, float * v_right)
     y = y - max;                        // декартову форму. 
     z = z - max;
        
-    R = pow(x,2) + pow(y,2);            // Формула Пифагора.
-    R = sqrt(R);                        // Так определяем вектор движения.
+    R = pow(x,2) + pow(y,2);            // Pithagorus
+    R = sqrt(R);                        // Movement vector
     if (R > max)                        
-        R = max;                        // Не выходим за расчётные 12В.
+        R = max;                        // Do not move outside from 12V.
     
-    if (y < 0)                          // Если есть общий реверс.
+    if (y < 0)
         Reverse = -1;
     
-    V = (R / max) * 12;                 // Переводим значения ADC->V
-                                        // (напряжение на обмотки двигателей)
     alpha = atan2(x,y) * (180 / M_PI);  
-    alpha = abs( alpha );               // Абсолютное значение угла направления.
+    V = (R / max) * 12;                 // ADC->V convertation
+    alpha = abs( alpha );               // Absolute value of movement angle.
     
     if (x >= 0)
     {
@@ -62,6 +61,7 @@ void pos2volts(int x, int y, int z, float * v_left, float * v_right)
         *v_left = V * ((90-alpha) / 90);
         *v_right = V * Reverse;
     }
-    // Коррекция по оси Z (управление триммером)
+	
+    // Z axis correction
     z_correction (z, v_left, v_right);
 }

@@ -12,7 +12,7 @@
 #include "th_functions.h"
 #include "fields.h"
 
-// Прототипы функций:
+// Function prototypes
 void            chassis_term            ();
 
 unsigned char   convert_temperature     (float temperature);
@@ -20,9 +20,8 @@ unsigned char   convert_pressure        (float pressure);
 unsigned char   convert_current         (float current);
 unsigned char   convert_voltage         (float voltage);
 
-// Тред:        Шасси
-// Функция:     Связь с МК шасси, передача комманд управления
-//              и сбор данных датчиков МК.
+// Chasis thread
+// It`s function is to communicate with chasis MCU (ATMega88) via UART
 void * chassis (void * arg)
 {   
     pthread_setcancelstate      (PTHREAD_CANCEL_DISABLE, NULL);
@@ -99,11 +98,10 @@ void * chassis (void * arg)
     pthread_exit(EXIT_SUCCESS);
 }
 
-// Тред:        Шасси.
-// Функция:     Завершение треда "шасси".
+// Stopping Chasis thread.
 void chassis_term()
 {
-    printf ("Chassis thread shutdowned!\n");
+    printf ("Chassis thread stopped!\n");
 }
 
 unsigned char convert_temperature(float temperature)

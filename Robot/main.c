@@ -10,54 +10,55 @@
 #include "th_functions.h"
 #include "fields.h"
 
-// Глобальные переменные:
+// Global variables (Yes, I know, that is bad practice)
 int X,Y,Z,Status;
 unsigned char Press, Temper, LVolt, RVolt, LCurr, RCurr;
 
-// Мьютексы:
+// Mutexes:
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-// Прототипы функций:
+// Function prototypes:
 void     msg_protocol    (int size, char * recv, char * send);
 
-// Треды:
-void    * operator      (void * arg); // связь "демон <- станция оператора"
-void    * chassis       (void * arg); // связь "демон -> контроллер шасси"
+// Threads:
+void    * operator      (void * arg); // Provides the connection between daemon and operator station.
+void    * chassis       (void * arg); // Provides the connection between daemon and MCU
 
 int main(int argc, char * argv[])
 {
     printf ("Main: Start!\n");
     
-    // Глобальные переменные
+    // Global varibles
     Status = 0; X = 0; Y = 0; Z = 0;
     
-    // Потоки
-    pthread_t   ptr_oper;       // Указатель на поток "Оператор".
-    pthread_t   ptr_chassis;    // Указатель на поток "Шасси".
+    // Thread pointers
+    pthread_t   ptr_oper;       // Operator thread pointer.
+    pthread_t   ptr_chassis;    // Chassis thread pointer.
     
-    // Локальные переменные.
-    int         result  = 0;    // Результат выполнения операции.
-    int         id1     = 1;    // Идентификатор потока.
+    // Local variables
+    int         result  = 0;    // Operation result
+    int         id1     = 1;    // Thread identifier
     int         id2     = 2;
-    int         sig     = 0;    // Номер полученного сигнала.
+    int         sig     = 0;    // Number of received signal
     
-    // Сигнальные переменные.
+    // Signal variables
     sigset_t sset;
     
-    // Установка параметров списка сигналов.
+    // Setup of signals list
     sigemptyset         (&sset);
     sigaddset           (&sset, SIGTERM);
     pthread_sigmask     (SIG_BLOCK, &sset, NULL);
    
-    // Запуск тредов:
-    // Тред "оператор".
+    // Launching threads
+    // Operator thread here:
     printf ("Operator: Operator thread!\n");
     result = pthread_create (&ptr_oper, NULL, operator, &id1);
     if (result != 0) {
         perror ("Creating the operator thread!");
         return (EXIT_FAILURE);
-    }   
-    // Тред "шасси".
+    }
+	
+    // Chasis thread here:
     printf ("Chassis: Chassis thread!\n");
     result = pthread_create (&ptr_chassis, NULL, chassis, &id2);
     if (result != 0) {
@@ -65,10 +66,10 @@ int main(int argc, char * argv[])
         return (EXIT_FAILURE);
     }
      
-    // Ожидание сигнала.
+    // Waiting for signal
     sigwait(&sset, &sig);
     
-    // Завершение работы.
+    // Stopping work after signal is received
     pthread_cancel (ptr_oper);
     pthread_cancel (ptr_chassis);
     

@@ -1,10 +1,10 @@
 #ifndef TH_FUNCTIONS_H
 #define	TH_FUNCTIONS_H
 
-// Мьютексы:
+// Mutexes
 extern pthread_mutex_t mutex1;
 
-// Переменные:
+// Variables:
 extern int X;
 extern int Y;
 extern int Z;
@@ -19,18 +19,19 @@ extern unsigned char RCurr;
 
 extern int Status;
 
-// Треды:
-void    * operator      (void * arg); // связь "демон <- станция оператора"
-void    * chassis       (void * arg); // связь "демон -> контроллер шасси"
+// Threads:
+void    * operator      (void * arg); // communication "daemon <- operator"
+void    * chassis       (void * arg); // communication "демон -> chasis MCU"
 
-// Функции
-// Перевод координат джойстика в напряжение на обмотках мотора
+// Functions
+// Joystic coordinates to voltage on the drives
 void    pos2volts       (int, int, int, float *, float *);
 void    z_correction    (int, float *, float *);
-// Операции с битами статусной переменной
-void    set_bit         (int *, short);         // установка
-void    clr_bit         (int *, short);         // очистка
-void    xor_bit         (int *, short);         // переключение
+
+// Byte operations
+void    set_bit         (int *, short);
+void    clr_bit         (int *, short);
+void    xor_bit         (int *, short);
 
 #endif
 
