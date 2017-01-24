@@ -15,30 +15,29 @@ namespace RobotControl
 {
     public partial class Form1 : Form
     {
-        byte[] remdata = new byte[1024];            // Буффер приёмника данных. 
+        byte[] remdata = new byte[1024];            // Data transmission buffer 
 
-        private JoystickInterface.Joystick jst;     // Интерфейс для работы с джойстиком
+        private JoystickInterface.Joystick jst;     // Joystick interface
         
-        // Данные для работы с сокетами.
         Socket Sock;
         IPEndPoint hostEndPoint = new IPEndPoint(IPAddress.Parse("192.168.2.1"), 4002);
 
-        struct DataReceived             // Структура под принимаемые данные.
+        struct DataReceived             // Structure for received data
         {
-            int DrvCtrlStatus;          // Код состояния контроллера шасси.
-            int ComCtrlStatus;          // Код состояния связного контроллера.
-            int Memory;                 // Объём памяти связного контроллера.
-            int Voltage;                // Данные напряжения. 
-            int Temperature;            // Данные температуры.
+            int DrvCtrlStatus;          // Chasis status code
+            int ComCtrlStatus;          // Controller status code
+            int Memory;                 // Controller memory level
+            int Voltage;                // Voltage data
+            int Temperature;            // Temperature data
         };
 
-        struct DataSend                 // Структура под передачу комманд.
+        struct DataSend                 // Structure for commands
         {
-            public bool Status;         // Запрос состояния контроллера.
+            public bool Status;         // Controller status request code
 
-            public int X;             // Скорость вращения левого двигателя.
-            public int Y;             // Скорость вращения левого двигателя.
-            public int Z;             // Скорость вращения левого двигателя.
+            public int X;
+            public int Y;
+            public int Z;
         };
 
         int X, Y, Z;
@@ -54,18 +53,18 @@ namespace RobotControl
         private void Form1_Load(object sender, EventArgs e)
         {
 
-            // Инициализация джойстика.
+            // Initializing joystick
             jst = new JoystickInterface.Joystick(this.Handle);
             string[] sticks = jst.FindJoysticks();
             
             if (sticks.Length > 0)
             {
-                // Подключаемся к первому найденному джойстику.
+                // Connect to the first found joystick device
                 if (jst.AcquireJoystick(sticks[0]) == true)
                 {
                     JoyCon.Text = "Connected";
                     
-                    // Запускаем циклический опрос позиционеров джойстика.
+                    // Request the status of joystick in cycle. 
                     timer1.Enabled = true;
                 }
                 else
@@ -76,17 +75,17 @@ namespace RobotControl
                 JoyCon.Text = "Disconnected";
             }
 
-            // Выполняем подключение к связному контроллеру.
+            // Connecting to the robot controller
             CtrlConn.Text = "Connecting...";
             try
             {
 
-                // Подключение - TCP/IPv4
+                // Making TCP/IP v4 socket
                 Sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
                 Sock.Connect(hostEndPoint);
 
-                // Приём сообщения "Hello"
+                // Receiving the Hello message
                 Sock.Receive(remdata);
                 CtrlRcv.Text = Encoding.ASCII.GetString(remdata);
                 if (CtrlRcv.Text == "Hello")
@@ -94,7 +93,7 @@ namespace RobotControl
                     
                     CtrlConn.Text = "Connected";
 
-                    // Формируем запрос...
+                    // Making request
                     DtSnt.Status = true;
                     DtSnt.X = 0;
                     DtSnt.Y = 0;
@@ -113,31 +112,31 @@ namespace RobotControl
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            // Обновление данных джойстика
+            // Refreshing the joystick data
             jst.UpdateStatus();
 
-            // Позиционеры
+            // Position of axis
             X = Convert.ToInt32((jst.AxisC - 32767) * 100 / 32767);
             Y = Convert.ToInt32(((jst.AxisD - 32767) * 100 / 32767) * (-1));
             Z = Convert.ToInt32((jst.AxisA - 32767) * 100 / 32767);
 
-            // Ось Х - левый / правый
+            // Axis X - left / right
             JoyX.Text = X.ToString();
-            // Ось У - вперёд / назад.
+            // Axis Y - forward / backward
             JoyY.Text = Y.ToString();
-            // Триммер - левый / правый.
+            // Trimmers - left / right
             JoyZ.Text = Z.ToString();
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            // Если подключенны к контроллеру шасси - отключаемся.
+            // If we are connected, then disconnect
             if (CtrlConn.Text == "Connected")
             {
                 TmrData.Enabled = false;
                 Sock.Close();
             }
-            // Отключаем джойстик. 
+            // Disconnect joystick too
             jst.ReleaseJoystick();
         }
 
